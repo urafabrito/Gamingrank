@@ -1,0 +1,47 @@
+
+CREATE TABLE IF NOT EXISTS turmas (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(80) NOT NULL UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS alunos (
+  id SERIAL PRIMARY KEY,
+  matricula VARCHAR(30) NOT NULL UNIQUE,
+  nome VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS alunos_turmas (
+  aluno_id INT NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+  turma_id INT NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+  PRIMARY KEY (aluno_id, turma_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS atividades (
+  id SERIAL PRIMARY KEY,
+  turma_id INT NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+  nome VARCHAR(80) NOT NULL,
+  max_pontos NUMERIC(6,2) NOT NULL DEFAULT 10,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (turma_id, nome)
+);
+
+
+CREATE TABLE IF NOT EXISTS notas (
+  aluno_id INT NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+  atividade_id INT NOT NULL REFERENCES atividades(id) ON DELETE CASCADE,
+  nota NUMERIC(6,2) NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (aluno_id, atividade_id)
+);
+
+CREATE TABLE IF NOT EXISTS pontos_uso (
+  turma_id INT NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+  aluno_id INT NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+  pontos_usados NUMERIC(6,2) NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (turma_id, aluno_id)
+);

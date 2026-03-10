@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GamingRank - Turma</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>GamingRank</span>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a class="link-top" href="./professor.html">Voltar</a>
+      <button id="btnSair" class="link-top" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+  <section class="result-header">
+    <h1 id="tituloTurma">Turma</h1>
+  </section>
+
+  <div id="msg" class="subtle" style="margin-top:12px;"></div>
+
+  <section class="turma turma-card-lite" style="margin-top:16px;">
+    <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+      <div>
+        <h3 id="nomeTurmaCard" style="margin:0;">PDS</h3>
+        <div class="subtle" id="nomeAlunoCard" style="margin-top:4px;"></div>
+      </div>
+
+      <select id="selectAluno" style="height:40px; border-radius:10px; border:1px solid var(--line); padding:0 10px; min-width:260px;">
+      </select>
+    </div>
+
+    <div class="table-wrap" style="margin-top:10px;">
+      <table class="sheet-lite">
+        <thead>
+          <tr>
+            <th>Atividade</th>
+            <th>Nota</th>
+            <th>Máx</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyNotas"></tbody>
+      </table>
+    </div>
+
+    <div class="admin-actions" style="margin-top:14px;">
+      <button id="btnAddAluno" class="btn-small" type="button">Adicionar aluno</button>
+      <button id="btnDelAluno" class="btn-small danger" type="button">Excluir aluno</button>
+      <button id="btnAddAtv" class="btn-small" type="button">Adicionar atividade</button>
+      <button id="btnDelAtv" class="btn-small danger" type="button">Excluir atividade</button>
+      <button id="btnRelatorio" class="btn-small" type="button">Gerar relatório</button>
+      <button id="btnImportTxt" class="btn-small" type="button">Importar alunos</button>
+      <button id="btnUsarPontos" class="btn-small" type="button">Usar pontos</button>
+      <input id="fileImport" type="file" accept=".txt" style="display:none" />
+    </div>
+  </section>
+</main>
+
+  <div class="footerbar"></div>
+
+  <script src="../turma.js"></script>
+  <script>
+    document.getElementById("btnSair")?.addEventListener("click", () => {
+      sessionStorage.removeItem("adminSecret");
+      window.location.href = "./professor-login.html";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GamingRank - Professor</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>GamingRank</span>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a class="link-top" href="./aluno.html">Página inicial</a>
+      <button id="btnSair" class="link-top" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="result-header">
+      <h1>Painel do Professor</h1>
+    </section>
+
+    <section class="turma" style="margin-top:16px;">
+      <h3>Turmas</h3>
+
+      <form id="formCriarTurma" class="form" style="margin-top:10px;">
+        <input id="nomeTurma" placeholder="Nome da turma (ex: PDS)" />
+        <button type="submit">Criar turma</button>
+      </form>
+
+      <div id="msg" class="subtle" style="margin-top:10px;"></div>
+
+      <div class="table-wrap" style="margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="turmasBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="footerbar"></div>
+
+  <script src="../professor.js"></script>
+  <script>
+    
+    document.getElementById("btnSair")?.addEventListener("click", () => {
+      sessionStorage.removeItem("adminSecret");
+      window.location.href = "./professor-login.html";
+    });
+  </script>
+</body>
+</html>

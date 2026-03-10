@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GamingRank - Professor</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>GamingRank</span>
+    </div>
+
+    <a class="link-top" href="./aluno.html">Página inicial</a>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="search-card">
+        <h1>Acesso do Professor</h1>
+        <div class="subtle" style="margin-bottom:12px;">
+          Digite a chave para acessar o painel.
+        </div>
+
+        <form id="formLogin" class="form">
+          <input
+            id="adminSecret"
+            type="password"
+            placeholder="Digite a chave"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="submit">Entrar</button>
+        </form>
+
+        <div id="msg" class="subtle" style="margin-top:10px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footerbar"></div>
+
+  <script src="../professor-login.js"></script>
+</body>
+</html>
