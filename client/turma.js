@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api";
+const API = "https://gamingrank-api.onrender.com/api";
 const LOGIN_PAGE = "./professor-login.html";
 const btnImportTxt = document.getElementById("btnImportTxt");
 const fileImport = document.getElementById("fileImport");

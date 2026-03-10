@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api";
+const API = "https://gamingrank-api.onrender.com/api";
 
 const formLogin = document.getElementById("formLogin");
 const adminSecretInput = document.getElementById("adminSecret");
