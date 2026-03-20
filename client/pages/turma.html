@@ -63,6 +63,113 @@
   </section>
 </main>
 
+  <div id="modalAluno" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Adicionar aluno</h3>
+      <button id="fecharModalAluno" class="icon-btn" type="button">✖</button>
+    </div>
+
+    <form id="formModalAluno" class="modal-form">
+      <label for="modalMatricula">Matrícula</label>
+      <input id="modalMatricula" type="text" placeholder="Digite a matrícula" />
+
+      <label for="modalNome">Nome</label>
+      <input id="modalNome" type="text" placeholder="Digite o nome do aluno" />
+
+      <div class="modal-actions">
+        <button id="cancelarModalAluno" class="btn-small danger" type="button">Cancelar</button>
+        <button class="btn-small" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+  </div>
+
+  <div id="modalAtividade" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Adicionar atividade</h3>
+        <button id="fecharModalAtividade" class="icon-btn" type="button">✖</button>
+      </div>
+
+      <form id="formModalAtividade" class="modal-form">
+        <label for="modalNomeAtividade">Nome da atividade</label>
+        <input id="modalNomeAtividade" type="text" placeholder="Ex: Atvd 1" />
+
+        <label for="modalMaxAtividade">Máximo de pontos</label>
+        <input id="modalMaxAtividade" type="number" step="0.1" min="0.1" placeholder="Ex: 10" />
+
+        <div class="modal-actions">
+          <button id="cancelarModalAtividade" class="btn-small danger" type="button">Cancelar</button>
+          <button class="btn-small" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalPontos" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Usar pontos</h3>
+        <button id="fecharModalPontos" class="icon-btn" type="button">✖</button>
+      </div>
+
+      <form id="formModalPontos" class="modal-form">
+        <div id="modalPontosAlunoInfo" class="subtle"></div>
+
+        <label for="modalQtdPontos">Quantidade de pontos</label>
+        <input id="modalQtdPontos" type="number" step="0.1" min="0.1" placeholder="Ex: 2" />
+
+        <div class="modal-actions">
+          <button id="cancelarModalPontos" class="btn-small danger" type="button">Cancelar</button>
+          <button class="btn-small" type="submit">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalExcluirAluno" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Excluir aluno</h3>
+      <button id="fecharModalExcluirAluno" class="icon-btn" type="button">✖</button>
+    </div>
+
+    <div class="modal-form">
+      <div id="textoExcluirAluno" class="modal-danger-text"></div>
+
+      <div class="modal-actions">
+        <button id="cancelarModalExcluirAluno" class="btn-small" type="button">Cancelar</button>
+        <button id="confirmarExcluirAluno" class="btn-small danger" type="button">Excluir</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="modalExcluirAtividade" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Excluir atividade</h3>
+      <button id="fecharModalExcluirAtividade" class="icon-btn" type="button">✖</button>
+    </div>
+
+    <form id="formModalExcluirAtividade" class="modal-form">
+      <label for="modalSelectAtividadeExcluir">Atividade</label>
+      <select id="modalSelectAtividadeExcluir"></select>
+
+      <div id="textoExcluirAtividade" class="modal-danger-text">
+        As notas dessa atividade também serão removidas.
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancelarModalExcluirAtividade" class="btn-small" type="button">Cancelar</button>
+        <button class="btn-small danger" type="submit">Excluir</button>
+      </div>
+    </form>
+  </div>
+  </div>
+
+
   <div class="footerbar"></div>
 
   <script src="../turma.js"></script>

@@ -1,4 +1,5 @@
 const API = "https://gamingrank-api.onrender.com/api";
+//const API = "http://localhost:3000/api";
 
 function qs(name) {
   return new URLSearchParams(window.location.search).get(name);

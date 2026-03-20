@@ -1,4 +1,6 @@
 const API = "https://gamingrank-api.onrender.com/api";
+//const API = "http://localhost:3000/api";
+
 const LOGIN_PAGE = "./professor-login.html";
 const btnImportTxt = document.getElementById("btnImportTxt");
 const fileImport = document.getElementById("fileImport");
@@ -29,6 +31,38 @@ const btnAddAluno = document.getElementById("btnAddAluno");
 const btnAddAtv = document.getElementById("btnAddAtv");
 const btnDelAtv = document.getElementById("btnDelAtv");
 const btnRelatorio = document.getElementById("btnRelatorio");
+const modalAluno = document.getElementById("modalAluno");
+const fecharModalAluno = document.getElementById("fecharModalAluno");
+const cancelarModalAluno = document.getElementById("cancelarModalAluno");
+const formModalAluno = document.getElementById("formModalAluno");
+const modalMatricula = document.getElementById("modalMatricula");
+const modalNome = document.getElementById("modalNome");
+const modalAtividade = document.getElementById("modalAtividade");
+const fecharModalAtividade = document.getElementById("fecharModalAtividade");
+const cancelarModalAtividade = document.getElementById("cancelarModalAtividade");
+const formModalAtividade = document.getElementById("formModalAtividade");
+const modalNomeAtividade = document.getElementById("modalNomeAtividade");
+const modalMaxAtividade = document.getElementById("modalMaxAtividade");
+
+const modalPontos = document.getElementById("modalPontos");
+const fecharModalPontos = document.getElementById("fecharModalPontos");
+const cancelarModalPontos = document.getElementById("cancelarModalPontos");
+const formModalPontos = document.getElementById("formModalPontos");
+const modalPontosAlunoInfo = document.getElementById("modalPontosAlunoInfo");
+const modalQtdPontos = document.getElementById("modalQtdPontos");
+
+const modalExcluirAluno = document.getElementById("modalExcluirAluno");
+const fecharModalExcluirAluno = document.getElementById("fecharModalExcluirAluno");
+const cancelarModalExcluirAluno = document.getElementById("cancelarModalExcluirAluno");
+const confirmarExcluirAluno = document.getElementById("confirmarExcluirAluno");
+const textoExcluirAluno = document.getElementById("textoExcluirAluno");
+
+const modalExcluirAtividade = document.getElementById("modalExcluirAtividade");
+const fecharModalExcluirAtividade = document.getElementById("fecharModalExcluirAtividade");
+const cancelarModalExcluirAtividade = document.getElementById("cancelarModalExcluirAtividade");
+const formModalExcluirAtividade = document.getElementById("formModalExcluirAtividade");
+const modalSelectAtividadeExcluir = document.getElementById("modalSelectAtividadeExcluir");
+const textoExcluirAtividade = document.getElementById("textoExcluirAtividade");
 
 function setMsg(text, isError = false) {
   msg.textContent = text || "";
@@ -55,6 +89,90 @@ async function apiAdmin(path, options = {}) {
 
 const turmaId = Number(qs("id"));
 let grade = null;
+let alunoIdParaExcluir = null;
+
+function abrirModalAluno() {
+  modalAluno.classList.remove("hidden");
+  modalMatricula.value = "";
+  modalNome.value = "";
+  modalMatricula.focus();
+}
+
+function fecharModalAlunoFn() {
+  modalAluno.classList.add("hidden");
+}
+
+function abrirModalAtividade() {
+  modalAtividade.classList.remove("hidden");
+  modalNomeAtividade.value = "";
+  modalMaxAtividade.value = "10";
+  modalNomeAtividade.focus();
+}
+
+function fecharModalAtividadeFn() {
+  modalAtividade.classList.add("hidden");
+}
+
+function abrirModalPontos(aluno) {
+  modalPontos.classList.remove("hidden");
+  modalQtdPontos.value = "";
+  modalPontosAlunoInfo.textContent = `Aluno: ${aluno.nome} (${aluno.matricula})`;
+  modalQtdPontos.focus();
+}
+
+function fecharModalPontosFn() {
+  modalPontos.classList.add("hidden");
+}
+
+function abrirModalExcluirAluno(aluno) {
+  alunoIdParaExcluir = aluno.id;
+  textoExcluirAluno.textContent = `Tem certeza que deseja excluir o aluno "${aluno.nome} (${aluno.matricula})" desta turma?`;
+  modalExcluirAluno.classList.remove("hidden");
+}
+
+function fecharModalExcluirAlunoFn() {
+  modalExcluirAluno.classList.add("hidden");
+  alunoIdParaExcluir = null;
+}
+
+function preencherSelectExcluirAtividade(preselectedId = null) {
+  modalSelectAtividadeExcluir.innerHTML = "";
+
+  grade.atividades.forEach((atv) => {
+    const opt = document.createElement("option");
+    opt.value = atv.id;
+    opt.textContent = `${atv.nome} (máx: ${atv.max})`;
+    modalSelectAtividadeExcluir.appendChild(opt);
+  });
+
+  if (preselectedId && grade.atividades.some((a) => a.id === preselectedId)) {
+    modalSelectAtividadeExcluir.value = String(preselectedId);
+  }
+}
+
+function atualizarTextoExcluirAtividade() {
+  const atividadeId = Number(modalSelectAtividadeExcluir.value);
+  const atividade = grade.atividades.find((a) => a.id === atividadeId);
+
+  if (!atividade) {
+    textoExcluirAtividade.textContent = "As notas dessa atividade também serão removidas.";
+    return;
+  }
+
+  textoExcluirAtividade.textContent = `A atividade "${atividade.nome}" será excluída e as notas dela também serão removidas.`;
+}
+
+function abrirModalExcluirAtividade(preselectedId = null) {
+  preencherSelectExcluirAtividade(preselectedId);
+  atualizarTextoExcluirAtividade();
+  modalExcluirAtividade.classList.remove("hidden");
+  modalSelectAtividadeExcluir.focus();
+}
+
+function fecharModalExcluirAtividadeFn() {
+  modalExcluirAtividade.classList.add("hidden");
+  modalSelectAtividadeExcluir.innerHTML = "";
+}
 
 function fillSelectAlunos() {
   selectAluno.innerHTML = "";
@@ -272,32 +390,69 @@ tbodyNotas.addEventListener("click", async (e) => {
     }
 
     if (action === "delAtv") {
-      const ok = confirm(`Excluir a atividade "${atvNome}"? (as notas dela também serão removidas)`);
-      if (!ok) return;
-
-      await apiAdmin(`/admin/atividades/${atvId}`, { method: "DELETE" });
-
-      await reloadGrade(true);
-      setMsg("Atividade excluída ");
+      abrirModalExcluirAtividade(atvId);
+      return;
     }
+
   } catch (err) {
     setMsg(err.message, true);
   }
 });
 
-btnAddAluno.addEventListener("click", async () => {
-  const matricula = prompt("Matrícula do aluno:");
-  if (!matricula || !matricula.trim()) return;
+btnAddAluno.addEventListener("click", () => {
+  abrirModalAluno();
+});
 
-  const nome = prompt("Nome do aluno:");
-  if (!nome || !nome.trim()) return;
+fecharModalAluno?.addEventListener("click", fecharModalAlunoFn);
+cancelarModalAluno?.addEventListener("click", fecharModalAlunoFn);
+
+modalAluno?.addEventListener("click", (e) => {
+  if (e.target === modalAluno) {
+    fecharModalAlunoFn();
+  }
+});
+
+formModalAluno?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const matricula = modalMatricula.value.trim();
+  const nome = modalNome.value.trim();
+
+  if (!matricula || !nome) {
+    setMsg("Preencha matrícula e nome do aluno.", true);
+    return;
+  }
+
+fecharModalExcluirAluno?.addEventListener("click", fecharModalExcluirAlunoFn);
+cancelarModalExcluirAluno?.addEventListener("click", fecharModalExcluirAlunoFn);
+
+modalExcluirAluno?.addEventListener("click", (e) => {
+  if (e.target === modalExcluirAluno) {
+    fecharModalExcluirAlunoFn();
+  }
+});
+
+fecharModalExcluirAtividade?.addEventListener("click", fecharModalExcluirAtividadeFn);
+cancelarModalExcluirAtividade?.addEventListener("click", fecharModalExcluirAtividadeFn);
+
+modalExcluirAtividade?.addEventListener("click", (e) => {
+  if (e.target === modalExcluirAtividade) {
+    fecharModalExcluirAtividadeFn();
+  }
+});
+
+modalSelectAtividadeExcluir?.addEventListener("change", atualizarTextoExcluirAtividade);
 
   try {
     await apiAdmin(`/admin/turmas/${turmaId}/alunos`, {
       method: "POST",
-      body: JSON.stringify({ matricula: matricula.trim(), nome: nome.trim() }),
+      body: JSON.stringify({
+        matricula,
+        nome,
+      }),
     });
 
+    fecharModalAlunoFn();
     await reloadGrade(false);
     setMsg("Aluno adicionado");
   } catch (err) {
@@ -306,25 +461,45 @@ btnAddAluno.addEventListener("click", async () => {
 });
 
 // ✅ adicionar atividade
-btnAddAtv.addEventListener("click", async () => {
-  const nome = prompt("Nome da atividade (ex: Atvd 1):");
-  if (!nome || !nome.trim()) return;
+btnAddAtv.addEventListener("click", () => {
+  abrirModalAtividade();
+});
 
-  const maxStr = prompt("Máximo de pontos (ex: 10):", "10");
-  if (maxStr === null) return;
-  const max = Number(maxStr);
+fecharModalAtividade?.addEventListener("click", fecharModalAtividadeFn);
+cancelarModalAtividade?.addEventListener("click", fecharModalAtividadeFn);
+
+modalAtividade?.addEventListener("click", (e) => {
+  if (e.target === modalAtividade) {
+    fecharModalAtividadeFn();
+  }
+});
+
+formModalAtividade?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const nome = modalNomeAtividade.value.trim();
+  const max = Number(modalMaxAtividade.value);
+
+  if (!nome) {
+    setMsg("Digite o nome da atividade.", true);
+    return;
+  }
 
   if (Number.isNaN(max) || max <= 0) {
-    setMsg("Máx inválido.", true);
+    setMsg("Máximo inválido.", true);
     return;
   }
 
   try {
     await apiAdmin(`/admin/turmas/${turmaId}/atividades`, {
       method: "POST",
-      body: JSON.stringify({ nome: nome.trim(), max_pontos: max }),
+      body: JSON.stringify({
+        nome,
+        max_pontos: max,
+      }),
     });
 
+    fecharModalAtividadeFn();
     await reloadGrade(true);
     setMsg("Atividade criada");
   } catch (err) {
@@ -332,15 +507,59 @@ btnAddAtv.addEventListener("click", async () => {
   }
 });
 
-btnUsarPontos.addEventListener("click", async () => {
+fecharModalExcluirAluno.addEventListener("click", fecharModalExcluirAlunoFn);
+cancelarModalExcluirAluno.addEventListener("click", fecharModalExcluirAlunoFn);
+
+modalExcluirAluno.addEventListener("click", (e) => {
+  if (e.target === modalExcluirAluno) {
+    fecharModalExcluirAlunoFn();
+  }
+});
+
+fecharModalExcluirAtividade.addEventListener("click", fecharModalExcluirAtividadeFn);
+cancelarModalExcluirAtividade.addEventListener("click", fecharModalExcluirAtividadeFn);
+
+modalExcluirAtividade.addEventListener("click", (e) => {
+  if (e.target === modalExcluirAtividade) {
+    fecharModalExcluirAtividadeFn();
+  }
+});
+
+modalSelectAtividadeExcluir.addEventListener("change", atualizarTextoExcluirAtividade);
+
+btnUsarPontos.addEventListener("click", () => {
   const alunoId = Number(selectAluno.value);
-  const aluno = grade.alunos.find(a => a.id === alunoId);
-  if (!aluno) return;
+  const aluno = grade.alunos.find((a) => a.id === alunoId);
 
-  const str = prompt("Quantos pontos do sistema o aluno vai usar na prova?");
-  if (str == null) return;
+  if (!aluno) {
+    setMsg("Selecione um aluno.", true);
+    return;
+  }
 
-  const pontos = Number(str);
+  abrirModalPontos(aluno);
+});
+
+fecharModalPontos?.addEventListener("click", fecharModalPontosFn);
+cancelarModalPontos?.addEventListener("click", fecharModalPontosFn);
+
+modalPontos?.addEventListener("click", (e) => {
+  if (e.target === modalPontos) {
+    fecharModalPontosFn();
+  }
+});
+
+formModalPontos?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const alunoId = Number(selectAluno.value);
+  const aluno = grade.alunos.find((a) => a.id === alunoId);
+  if (!aluno) {
+    setMsg("Selecione um aluno.", true);
+    return;
+  }
+
+  const pontos = Number(modalQtdPontos.value);
+
   if (Number.isNaN(pontos) || pontos <= 0) {
     setMsg("Valor inválido.", true);
     return;
@@ -349,38 +568,41 @@ btnUsarPontos.addEventListener("click", async () => {
   try {
     await apiAdmin(`/admin/turmas/${turmaId}/alunos/${alunoId}/descontar`, {
       method: "POST",
-      body: JSON.stringify({ pontos })
+      body: JSON.stringify({ pontos }),
     });
 
-    await reloadGrade(true); // recarrega e atualiza total + pontos disponíveis
+    fecharModalPontosFn();
+    await reloadGrade(true);
     setMsg("Pontos descontados");
   } catch (err) {
     setMsg(err.message, true);
   }
 });
 
-
-btnDelAtv.addEventListener("click", async () => {
+btnDelAtv.addEventListener("click", () => {
   if (!grade?.atividades?.length) {
     setMsg("Não há atividades para excluir.", true);
     return;
   }
 
-  const lista = grade.atividades.map((a) => a.nome).join("\n");
-  const nome = prompt(`Digite exatamente o nome da atividade para excluir:\n\n${lista}`);
-  if (!nome || !nome.trim()) return;
+  abrirModalExcluirAtividade();
+});
 
-  const atividade = grade.atividades.find((a) => a.nome.toLowerCase() === nome.trim().toLowerCase());
-  if (!atividade) {
-    setMsg("Atividade não encontrada (verifique o nome).", true);
+formModalExcluirAtividade?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const atividadeId = Number(modalSelectAtividadeExcluir.value);
+  if (!atividadeId) {
+    setMsg("Selecione uma atividade.", true);
     return;
   }
 
-  const ok = confirm(`Excluir a atividade "${atividade.nome}"? (isso remove as notas dela também)`);
-  if (!ok) return;
-
   try {
-    await apiAdmin(`/admin/atividades/${atividade.id}`, { method: "DELETE" });
+    await apiAdmin(`/admin/atividades/${atividadeId}`, {
+      method: "DELETE",
+    });
+
+    fecharModalExcluirAtividadeFn();
     await reloadGrade(true);
     setMsg("Atividade excluída");
   } catch (err) {
@@ -419,21 +641,28 @@ fileImport.addEventListener("change", async () => {
   }
 });
 
-btnDelAluno.addEventListener("click", async () => {
+btnDelAluno.addEventListener("click", () => {
   if (!grade?.alunos?.length) {
     setMsg("Não há alunos para excluir.", true);
     return;
   }
 
   const alunoId = Number(selectAluno.value);
-  const aluno = grade.alunos.find(a => a.id === alunoId);
+  const aluno = grade.alunos.find((a) => a.id === alunoId);
   if (!aluno) return;
 
-  const ok = confirm(`Excluir o aluno "${aluno.nome} (${aluno.matricula})" desta turma?`);
-  if (!ok) return;
+  abrirModalExcluirAluno(aluno);
+});
+
+confirmarExcluirAluno?.addEventListener("click", async () => {
+  if (!alunoIdParaExcluir) return;
 
   try {
-    await apiAdmin(`/admin/turmas/${turmaId}/alunos/${alunoId}`, { method: "DELETE" });
+    await apiAdmin(`/admin/turmas/${turmaId}/alunos/${alunoIdParaExcluir}`, {
+      method: "DELETE",
+    });
+
+    fecharModalExcluirAlunoFn();
     await reloadGrade(false);
     setMsg("Aluno removido da turma");
   } catch (err) {

@@ -1,4 +1,6 @@
 const API = "https://gamingrank-api.onrender.com/api";
+//const API = "http://localhost:3000/api";
+
 const LOGIN_PAGE = "./professor-login.html";
 
 /* ---------- helpers ---------- */
