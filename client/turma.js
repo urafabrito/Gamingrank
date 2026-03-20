@@ -183,7 +183,9 @@ function fillSelectAlunos() {
     selectAluno.appendChild(opt);
   });
 }
-
+function formatNumero(valor) {
+  return Number(valor.toFixed(1));
+}
 function renderAluno(alunoId) {
   const aluno = grade.alunos.find((a) => a.id === alunoId);
   if (!aluno) return;
@@ -227,8 +229,8 @@ function renderAluno(alunoId) {
   trTotal.className = "total-row";
   trTotal.innerHTML = `
     <td>Total</td>
-    <td class="num">${total}</td>
-    <td class="num">${maxTotal}</td>
+    <td class="num">${formatNumero(total)}</td>
+    <td class="num">${formatNumero(maxTotal)}</td>
   `;
   tbodyNotas.appendChild(trTotal);
   // buscar pontos do aluno nesta turma
