@@ -209,7 +209,7 @@ function renderAluno(alunoId) {
     tr.innerHTML = `
       <td>
         <div class="atv-cell">
-            <span>${atv.nome}</span>
+            <a href="./atividade.html?id=${atv.id}" class="atividade-link">${atv.nome}</a>
             <span class="atv-actions">
             <button class="icon-btn" data-action="editAtv" data-atv-id="${atv.id}" data-atv-nome="${atv.nome}" title="Editar">✏️</button>
             <button class="icon-btn danger" data-action="delAtv" data-atv-id="${atv.id}" data-atv-nome="${atv.nome}" title="Excluir">✖</button>

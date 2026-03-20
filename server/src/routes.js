@@ -711,4 +711,66 @@ router.post("/admin/turmas/:turmaId/alunos/:alunoId/descontar", adminAuth, async
   res.json({ ok: true });
 });
 
+router.get("/admin/atividades/:id/notas", adminAuth, async (req, res) => {
+  const atividadeId = Number(req.params.id);
+  if (!atividadeId) return res.status(400).json({ error: "id inválido" });
+
+  const atividadeRes = await pool.query(
+    `
+    SELECT
+      a.id,
+      a.nome,
+      a.max_pontos,
+      t.id AS turma_id,
+      t.nome AS turma_nome
+    FROM atividades a
+    JOIN turmas t ON t.id = a.turma_id
+    WHERE a.id = $1
+    `,
+    [atividadeId]
+  );
+
+  if (atividadeRes.rowCount === 0) {
+    return res.status(404).json({ error: "Atividade não encontrada" });
+  }
+
+  const atividade = atividadeRes.rows[0];
+
+  const alunosRes = await pool.query(
+    `
+    SELECT
+      al.id,
+      al.nome,
+      al.matricula,
+      n.nota
+    FROM alunos_turmas at
+    JOIN alunos al ON al.id = at.aluno_id
+    LEFT JOIN notas n
+      ON n.aluno_id = al.id
+     AND n.atividade_id = $2
+    WHERE at.turma_id = $1
+    ORDER BY al.nome
+    `,
+    [atividade.turma_id, atividadeId]
+  );
+
+  res.json({
+    turma: {
+      id: atividade.turma_id,
+      nome: atividade.turma_nome,
+    },
+    atividade: {
+      id: atividade.id,
+      nome: atividade.nome,
+      max: Number(atividade.max_pontos),
+    },
+    alunos: alunosRes.rows.map((al) => ({
+      id: al.id,
+      nome: al.nome,
+      matricula: al.matricula,
+      nota: al.nota === null ? null : Number(al.nota),
+    })),
+  });
+});
+
 module.exports = router;

@@ -467,3 +467,25 @@ td.total{
   font-size: 14px;
   line-height: 1.4;
 }
+
+.atividade-link{
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.atividade-link:visited{
+  color: var(--text);
+}
+
+.atividade-link:hover{
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.atividade-table-wrap{
+  margin-top: 10px;
+  max-height: 520px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

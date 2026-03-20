@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GamingRank - Atividade</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>GamingRank</span>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a id="linkVoltarTurma" class="link-top" href="./professor.html">Voltar</a>
+      <button id="btnSair" class="link-top" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="result-header">
+      <h1 id="tituloAtividade">Atividade</h1>
+    </section>
+
+    <div id="msg" class="subtle" style="margin-top:12px;"></div>
+
+    <section class="turma turma-card-lite" style="margin-top:16px;">
+      <div>
+        <h3 id="nomeTurmaCard" style="margin:0;">Turma</h3>
+        <div class="subtle" id="nomeAtividadeCard" style="margin-top:4px;"></div>
+      </div>
+
+      <div class="atividade-table-wrap" style="margin-top:10px;">
+        <table class="sheet-lite">
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>Nota</th>
+              <th>Máx</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyAtividade"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="footerbar"></div>
+
+  <script src="../atividade.js"></script>
+  <script>
+    document.getElementById("btnSair")?.addEventListener("click", () => {
+      sessionStorage.removeItem("adminSecret");
+      window.location.href = "./professor-login.html";
+    });
+  </script>
+</body>
+</html>
