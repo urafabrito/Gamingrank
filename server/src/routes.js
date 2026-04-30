@@ -132,7 +132,6 @@ router.get("/aluno/:matricula/notas", async (req, res) => {
 
     const aluno = alunoRes.rows[0];
 
-    // ✅ Agora também traz t.id (turma_id) para buscar pontos_usados sem ambiguidade
     const rowsRes = await pool.query(
       `
       SELECT
@@ -151,14 +150,13 @@ router.get("/aluno/:matricula/notas", async (req, res) => {
       [aluno.id]
     );
 
-    // mantém o agrupamento por NOME como antes, mas guarda turma_id junto
     const turmasMap = new Map();
 
     for (const r of rowsRes.rows) {
       if (!turmasMap.has(r.turma)) {
         turmasMap.set(r.turma, {
           turma: r.turma,
-          turma_id: r.turma_id, // auxiliar interno
+          turma_id: r.turma_id,
           atividades: [],
         });
       }
@@ -174,9 +172,8 @@ router.get("/aluno/:matricula/notas", async (req, res) => {
 
     const turmasArr = Array.from(turmasMap.values());
 
-    // ✅ Busca pontos usados (saldo) em uma query só
     const turmaIds = turmasArr.map(t => t.turma_id);
-    const usadosMap = new Map(); // turma_id -> usados
+    const usadosMap = new Map();
 
     if (turmaIds.length) {
       const usadosRes = await pool.query(
@@ -193,7 +190,6 @@ router.get("/aluno/:matricula/notas", async (req, res) => {
       }
     }
 
-    // ✅ Adiciona os campos novos sem alterar os antigos
     for (const t of turmasArr) {
       const total = t.atividades.reduce(
         (acc, a) => acc + (a.nota == null ? 0 : Number(a.nota)),
@@ -212,13 +208,11 @@ router.get("/aluno/:matricula/notas", async (req, res) => {
         total: Number(total.toFixed(2)),
         usados: Number(usados.toFixed(2)),
         disponiveis: Number(disponiveis.toFixed(2)),
-        equivalenteProva: Number((disponiveis / 10).toFixed(2)), // 10 pts => 1,0 na prova
+        equivalenteProva: Number((disponiveis / 10).toFixed(2)),
       };
 
-      // opcional (se quiser usar no front): t.maxTotal = Number(maxTotal.toFixed(2));
       t.maxTotal = Number(maxTotal.toFixed(2));
 
-      // remove campo auxiliar pra não “poluir” o retorno (não existia antes)
       delete t.turma_id;
     }
 
@@ -231,8 +225,6 @@ router.get("/aluno/:matricula/notas", async (req, res) => {
     res.status(500).json({ error: "Erro ao consultar notas" });
   }
 });
-
-
 
 router.get("/admin/turmas/:id/grade", adminAuth, async (req, res) => {
   const turmaId = Number(req.params.id);
@@ -288,8 +280,6 @@ router.get("/admin/turmas/:id/grade", adminAuth, async (req, res) => {
     notas: Object.fromEntries(notasMap),
   });
 });
-
-
 
 router.post("/admin/turmas/:id/atividades", adminAuth, async (req, res) => {
   const turmaId = Number(req.params.id);
@@ -347,7 +337,6 @@ router.put("/admin/notas", adminAuth, async (req, res) => {
   if (!alunoId || !atividadeId) return res.status(400).json({ error: "aluno_id e atividade_id obrigatórios" });
   if (Number.isNaN(notaNum)) return res.status(400).json({ error: "nota inválida" });
 
-  // valida max_pontos
   const maxRes = await pool.query("SELECT max_pontos FROM atividades WHERE id = $1", [atividadeId]);
   if (maxRes.rowCount === 0) return res.status(404).json({ error: "Atividade não encontrada" });
 
@@ -409,8 +398,6 @@ router.put("/admin/atividades/:id", adminAuth, async (req, res) => {
   res.json(result.rows[0]);
 });
 
-
-
 router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
   const turmaId = Number(req.params.id);
   if (!turmaId) return res.status(400).json({ error: "id inválido" });
@@ -429,7 +416,6 @@ router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
     return res.status(400).json({ error: "Arquivo inválido: precisa de cabeçalho + pelo menos 1 aluno" });
   }
 
-  // 1ª linha: Atv1(10)/Atv2(10)
   const header = lines[0];
   const atvParts = header.split("/").map((s) => s.trim()).filter(Boolean);
 
@@ -449,14 +435,12 @@ router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // garante turma
     const turmaRes = await client.query("SELECT id FROM turmas WHERE id = $1", [turmaId]);
     if (turmaRes.rowCount === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ error: "Turma não encontrada" });
     }
 
-    // cria/acha atividades na turma
     const atividadeIdByIndex = [];
     let createdAtividades = 0;
 
@@ -487,7 +471,6 @@ router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
       const parts = lines[li].split("/").map((s) => s.trim());
       if (parts.length < 1) continue;
 
-      // parts[0] = "Nome - Matricula"
       const headerAluno = parts[0];
 
       const idx = headerAluno.lastIndexOf("-");
@@ -510,11 +493,9 @@ router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
         return res.status(400).json({ error: `Matrícula vazia em: "${headerAluno}"` });
       }
 
-      // conta se é novo
       const existed = await client.query("SELECT id FROM alunos WHERE matricula = $1", [matricula]);
       const wasNew = existed.rowCount === 0;
 
-      // upsert por matrícula
       const alunoRes = await client.query(
         `
         INSERT INTO alunos (matricula, nome)
@@ -529,13 +510,11 @@ router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
 
       if (wasNew) createdAlunos++;
 
-      // vincula na turma
       await client.query(
         "INSERT INTO alunos_turmas (aluno_id, turma_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
         [alunoId, turmaId]
       );
 
-      // notas na ordem das atividades
       for (let ai = 0; ai < atividades.length; ai++) {
         const notaStr = parts[ai + 1];
         if (notaStr == null || notaStr === "") continue;
@@ -584,7 +563,6 @@ router.post("/admin/turmas/:id/import", adminAuth, async (req, res) => {
   }
 });
 
-
 router.delete("/admin/turmas/:turmaId/alunos/:alunoId", adminAuth, async (req, res) => {
   const turmaId = Number(req.params.turmaId);
   const alunoId = Number(req.params.alunoId);
@@ -595,7 +573,6 @@ router.delete("/admin/turmas/:turmaId/alunos/:alunoId", adminAuth, async (req, r
   try {
     await client.query("BEGIN");
 
-    // 1) apaga notas do aluno SOMENTE nas atividades dessa turma
     await client.query(
       `
       DELETE FROM notas n
@@ -607,7 +584,6 @@ router.delete("/admin/turmas/:turmaId/alunos/:alunoId", adminAuth, async (req, r
       [turmaId, alunoId]
     );
 
-    // 2) remove vínculo aluno_turma
     const delLink = await client.query(
       "DELETE FROM alunos_turmas WHERE turma_id = $1 AND aluno_id = $2 RETURNING aluno_id",
       [turmaId, alunoId]
@@ -634,7 +610,6 @@ router.get("/admin/turmas/:turmaId/alunos/:alunoId/pontos", adminAuth, async (re
   const alunoId = Number(req.params.alunoId);
   if (!turmaId || !alunoId) return res.status(400).json({ error: "id inválido" });
 
-  // Total = soma das notas do aluno nas atividades da turma
   const totRes = await pool.query(
     `
     SELECT COALESCE(SUM(n.nota),0) AS total
@@ -646,18 +621,17 @@ router.get("/admin/turmas/:turmaId/alunos/:alunoId/pontos", adminAuth, async (re
   );
   const total = Number(totRes.rows[0].total);
 
-  // Usados = pontos já descontados
   const usedRes = await pool.query(
     "SELECT pontos_usados FROM pontos_uso WHERE turma_id=$1 AND aluno_id=$2",
     [turmaId, alunoId]
   );
   const usados = usedRes.rowCount ? Number(usedRes.rows[0].pontos_usados) : 0;
 
-  const disponiveis = Math.max(0, total - usados);
+  const disponiveis = Number(Math.max(0, total - usados).toFixed(2));
 
   res.json({
-    total,
-    usados,
+    total: Number(total.toFixed(2)),
+    usados: Number(usados.toFixed(2)),
     disponiveis,
     equivalenteProva: Number((disponiveis / 10).toFixed(2)),
   });
@@ -672,7 +646,6 @@ router.post("/admin/turmas/:turmaId/alunos/:alunoId/descontar", adminAuth, async
   if (!turmaId || !alunoId) return res.status(400).json({ error: "id inválido" });
   if (Number.isNaN(p) || p <= 0) return res.status(400).json({ error: "pontos inválidos" });
 
-  // total acumulado
   const totRes = await pool.query(
     `
     SELECT COALESCE(SUM(n.nota),0) AS total
@@ -684,7 +657,6 @@ router.post("/admin/turmas/:turmaId/alunos/:alunoId/descontar", adminAuth, async
   );
   const total = Number(totRes.rows[0].total);
 
-  // usados atuais
   const usedRes = await pool.query(
     "SELECT pontos_usados FROM pontos_uso WHERE turma_id=$1 AND aluno_id=$2",
     [turmaId, alunoId]
@@ -696,7 +668,6 @@ router.post("/admin/turmas/:turmaId/alunos/:alunoId/descontar", adminAuth, async
     return res.status(400).json({ error: `Saldo insuficiente. Disponíveis: ${disponiveis}` });
   }
 
-  // incrementa usados
   await pool.query(
     `
     INSERT INTO pontos_uso (turma_id, aluno_id, pontos_usados)
