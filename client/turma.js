@@ -162,6 +162,19 @@ function atualizarTextoExcluirAtividade() {
   textoExcluirAtividade.textContent = `A atividade "${atividade.nome}" será excluída e as notas dela também serão removidas.`;
 }
 
+function formatNumeroRelatorio(valor) {
+  return Number(Number(valor).toFixed(1)).toString();
+}
+
+function slugify(texto) {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
 function abrirModalExcluirAtividade(preselectedId = null) {
   preencherSelectExcluirAtividade(preselectedId);
   atualizarTextoExcluirAtividade();
@@ -613,8 +626,70 @@ formModalExcluirAtividade?.addEventListener("submit", async (e) => {
 });
 
 // ✅ relatório (depois fazemos)
-btnRelatorio.addEventListener("click", () => {
-  alert("Relatório: vamos implementar no próximo passo 🙂");
+btnRelatorio.addEventListener("click", async () => {
+  try {
+    setMsg("Gerando relatório...");
+
+    const data = await apiAdmin(`/admin/turmas/${turmaId}/relatorio`);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "a4",
+    });
+
+    const headers = [
+      "Matrícula",
+      "Aluno",
+      ...data.atividades.map((a) => `${a.nome} (${formatNumeroRelatorio(a.max)})`),
+      "TOTAL",
+      "Pontos disponíveis",
+    ];
+
+    const body = data.linhas.map((linha) => [
+      linha.matricula,
+      linha.aluno,
+      ...linha.notas.map((n) => formatNumeroRelatorio(n)),
+      formatNumeroRelatorio(linha.total),
+      formatNumeroRelatorio(linha.pontos_disponiveis),
+    ]);
+
+    doc.setFontSize(16);
+    doc.text(`Relatório - ${data.turma.nome}`, 24, 28);
+
+    doc.setFontSize(9);
+    doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, 24, 44);
+
+    doc.autoTable({
+      head: [headers],
+      body,
+      startY: 56,
+      theme: "grid",
+      styles: {
+        fontSize: 8,
+        cellPadding: 4,
+        overflow: "linebreak",
+        halign: "center",
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: [217, 240, 248],
+        textColor: [15, 23, 42],
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { cellWidth: 60, halign: "center" },
+        1: { cellWidth: 210, halign: "left" },
+      },
+      margin: { top: 56, left: 24, right: 24, bottom: 24 },
+    });
+
+    doc.save(`relatorio-${slugify(data.turma.nome)}.pdf`);
+    setMsg("Relatório gerado");
+  } catch (err) {
+    setMsg(err.message, true);
+  }
 });
 
 btnImportTxt.addEventListener("click", () => {

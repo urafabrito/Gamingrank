@@ -281,6 +281,97 @@ router.get("/admin/turmas/:id/grade", adminAuth, async (req, res) => {
   });
 });
 
+router.get("/admin/turmas/:id/relatorio", adminAuth, async (req, res) => {
+  const turmaId = Number(req.params.id);
+  if (!turmaId) return res.status(400).json({ error: "id inválido" });
+
+  const round1 = (v) => Number(Number(v).toFixed(1));
+
+  const turmaRes = await pool.query(
+    "SELECT id, nome FROM turmas WHERE id = $1",
+    [turmaId]
+  );
+  if (turmaRes.rowCount === 0) {
+    return res.status(404).json({ error: "Turma não encontrada" });
+  }
+
+  const atividadesRes = await pool.query(
+    "SELECT id, nome, max_pontos FROM atividades WHERE turma_id = $1 ORDER BY id",
+    [turmaId]
+  );
+
+  const alunosRes = await pool.query(
+    `
+    SELECT a.id, a.matricula, a.nome
+    FROM alunos_turmas at
+    JOIN alunos a ON a.id = at.aluno_id
+    WHERE at.turma_id = $1
+    ORDER BY a.nome
+    `,
+    [turmaId]
+  );
+
+  const notasRes = await pool.query(
+    `
+    SELECT n.aluno_id, n.atividade_id, n.nota
+    FROM notas n
+    JOIN atividades a ON a.id = n.atividade_id
+    WHERE a.turma_id = $1
+    `,
+    [turmaId]
+  );
+
+  const pontosRes = await pool.query(
+    `
+    SELECT aluno_id, pontos_usados
+    FROM pontos_uso
+    WHERE turma_id = $1
+    `,
+    [turmaId]
+  );
+
+  const atividades = atividadesRes.rows.map((a) => ({
+    id: a.id,
+    nome: a.nome,
+    max: round1(a.max_pontos),
+  }));
+
+  const notasMap = new Map();
+  for (const r of notasRes.rows) {
+    notasMap.set(`${r.aluno_id}:${r.atividade_id}`, r.nota === null ? null : Number(r.nota));
+  }
+
+  const pontosMap = new Map();
+  for (const p of pontosRes.rows) {
+    pontosMap.set(p.aluno_id, Number(p.pontos_usados));
+  }
+
+  const linhas = alunosRes.rows.map((al) => {
+    const notas = atividades.map((atv) => {
+      const nota = notasMap.get(`${al.id}:${atv.id}`);
+      return round1(nota == null ? 0 : Number(nota));
+    });
+
+    const total = round1(notas.reduce((acc, n) => acc + Number(n || 0), 0));
+    const usados = Number(pontosMap.get(al.id) || 0);
+    const pontosDisponiveis = round1(Math.max(0, total - usados));
+
+    return {
+      matricula: al.matricula,
+      aluno: al.nome,
+      notas,
+      total,
+      pontos_disponiveis: pontosDisponiveis,
+    };
+  });
+
+  res.json({
+    turma: turmaRes.rows[0],
+    atividades,
+    linhas,
+  });
+});
+
 router.post("/admin/turmas/:id/atividades", adminAuth, async (req, res) => {
   const turmaId = Number(req.params.id);
   const { nome, max_pontos } = req.body;
