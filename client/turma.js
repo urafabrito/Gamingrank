@@ -301,6 +301,11 @@ tbodyNotas.addEventListener("click", async (e) => {
   const cell = e.target.closest(".nota-cell");
   if (!cell) return;
 
+  // Se já estiver editando, não cria outro input
+  if (cell.querySelector("input")) return;
+
+// Se clicou no próprio input, não faz nada
+  if (e.target.tagName === "INPUT") return;
   // não edita a linha Total
   if (cell.parentElement.classList.contains("total-row")) return;
 
@@ -326,6 +331,9 @@ tbodyNotas.addEventListener("click", async (e) => {
   cell.appendChild(input);
   input.focus();
   input.select();
+  input.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+  });
 
   async function save() {
     const v = input.value.trim();
